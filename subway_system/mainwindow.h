@@ -26,8 +26,26 @@ public:
 
 private slots:
     void openFile();
+    void chooseFolder();
 
-    void on_tableWidget_cellChanged(int row, int column);
+
+    void on_checkBox_stateChanged(int arg1);
+
+    void on_checkBox_3_stateChanged(int arg1);
+
+    void on_checkBox_2_stateChanged(int arg1);
+
+    void on_checkBox_4_stateChanged(int arg1);
+
+    void on_checkBox_5_stateChanged(int arg1);
+
+    void on_checkBox_6_stateChanged(int arg1);
+
+    void on_checkBox_7_stateChanged(int arg1);
+
+
+    void on_set_filter_clicked();
+
 
 private:
 
@@ -48,7 +66,9 @@ private:
     QTableWidget *table;
 
 
+    void timeFilter();
     void loadFile(const QString &path);
+    void loadFiles(const QStringList &stringlist);
     void tableShow(void);
     Ui::MainWindow *ui;
 };
