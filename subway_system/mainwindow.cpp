@@ -107,29 +107,18 @@ void MainWindow::loadFile(const QString &fileName)
 
     QTextStream stream(&file);
 
-    //ui->tableWidget->clearContents();
 
     bool flag = true;
     while (!stream.atEnd()) {
-        const QString line = stream.readLine();
-        if (!line.isEmpty()) {
-            const QStringList pieces = line.split(',', QString::SkipEmptyParts);
+        const QString Line = stream.readLine();
+        if (!Line.isEmpty()) {
             if (flag)
             {
                 flag = false;
                 continue;
             }
-            time.append(pieces.value(0));
-            lineID.append(pieces.value(1));
-            //stationID.append(pieces.value(2).toInt());
-            stationID_str.append(pieces.value(2));
-            //deviceID.append(pieces.value(3).toInt());
-            deviceID_str.append(pieces.value(3));
-            //status.append(pieces.value(4).toInt());
-            status_str.append(pieces.value(4));
-            userID.append(pieces.value(5));
-            //payType.append(pieces.value(6).toInt());
-            payType_str.append(pieces.value(6));
+
+            line.append(Line);
         }
     }
 
@@ -158,7 +147,7 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         fileName = stringlist[i];
 
         i++;
-        if(i > 100)
+        if(i > 50)
             break;
 
         //qDebug("file name is %s\n",qPrintable(fileName));
@@ -172,7 +161,6 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         while (!stream.atEnd()) {
             const QString Line = stream.readLine();
             if (!Line.isEmpty()) {
-                //const QStringList pieces = line.split(',', QString::SkipEmptyParts);
                 if (flag)
                 {
                     flag = false;
@@ -180,40 +168,24 @@ void MainWindow::loadFiles(const QStringList &stringlist)
                 }
                 line.append(Line);
 
-//                time.append(pieces.value(0));
-//                lineID.append(pieces.value(1));
-//                stationID.append(pieces.value(2).toInt());
-//                stationID_str.append(pieces.value(2));
-//                deviceID.append(pieces.value(3).toInt());
-//                deviceID_str.append(pieces.value(3));
-//                status.append(pieces.value(4).toInt());
-//                status_str.append(pieces.value(4));
-//                userID.append(pieces.value(5));
-//                payType.append(pieces.value(6).toInt());
-//                payType_str.append(pieces.value(6));
             }
         }
 
 
         file.close();
 
+        tableShow();
+        qApp->processEvents();
+
         qDebug("file name is %s\n",qPrintable(fileName));
         statusBar()->showMessage(tr("Loaded %1").arg(fileName), 2000);
     }
-    tableShow();
+
 }
 void MainWindow::tableShow()
 {
     int row = ui->tableWidget->rowCount();
-//    QVector<QString>::iterator iter_1,iter_2,iter_6;
-//    QVector<QString>::iterator iter_3,iter_4,iter_5,iter_7;
-//    iter_1 = time.begin() + row;
-//    iter_2 = lineID.begin() + row;
-//    iter_3 = stationID_str.begin() + row;
-//    iter_4 = deviceID_str.begin() + row;
-//    iter_5 = status_str.begin() + row;
-//    iter_6 = userID.begin() + row;
-//    iter_7 = payType_str.begin() + row;
+    //qDebug("%d\n",row);
 
     QVector<QString>::iterator iter;
     iter = line.begin() + row;
@@ -241,33 +213,6 @@ void MainWindow::tableShow()
         iter++;
     }
 
-//    while(iter_1 != time.end())
-//    {
-//        if(row == 1)
-//        {
-//            ui->tableWidget->resizeRowsToContents();
-//            ui->tableWidget->resizeColumnsToContents();
-//        }
-
-//        ui->tableWidget->insertRow(row); //插入新行
-
-//        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(*iter_1));
-//        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(*iter_2));
-//        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(*iter_3));
-//        ui->tableWidget->setItem(row, 3, new QTableWidgetItem(*iter_4));
-//        ui->tableWidget->setItem(row, 4, new QTableWidgetItem(*iter_5));
-//        ui->tableWidget->setItem(row, 5, new QTableWidgetItem(*iter_6));
-//        ui->tableWidget->setItem(row, 6, new QTableWidgetItem(*iter_7));
-
-//        row++;
-//        iter_1++;
-//        iter_2++;
-//        iter_3++;
-//        iter_4++;
-//        iter_5++;
-//        iter_6++;
-//        iter_7++;
-//    }
 
 
 }
@@ -311,20 +256,19 @@ void MainWindow::on_checkBox_7_stateChanged(int arg1)
 void MainWindow::on_set_filter_clicked()
 {
 
-    qDebug("set_filter_clicked\n");
+    //qDebug("set_filter_clicked\n");
 
     int RC = ui->tableWidget->rowCount();
 
 
-    qDebug("table row is %d",RC);
+    //qDebug("table row is %d",RC);
 
     for(int i = 0;i < RC;i++)
     {
         ui->tableWidget->setRowHidden(i,true);
     }
-    qDebug("All rows have been hidden\n");
+    //qDebug("All rows have been hidden\n");
 
-    int* point = new int[RC];
     bool flag[7];
     flag[0] = ui->lineA->isChecked();
     flag[1] = ui->lineB->isChecked();
@@ -334,121 +278,38 @@ void MainWindow::on_set_filter_clicked()
     flag[5] = ui->type_3->isChecked();
     flag[6] = ui->type_4->isChecked();
 
-    int symbol = (flag[0] || flag[1] || flag[2]) + (flag[3] || flag[4] ||flag[5] || flag[6]) + 1;
-
-    //line filter
-
-
-    if(flag[0])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("A",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==1)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-    if(flag[1])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("B",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==1)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-    if(flag[2])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("C",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==1)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-
-    //pay type filter
-
-    if(flag[3])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("0",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==6)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-    if(flag[4])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("1",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==6)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-    if(flag[5])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("2",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==6)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-    if(flag[6])
-    {
-        QList<QTableWidgetItem*> item = ui->tableWidget->findItems("3",Qt::MatchContains);
-        if(!item.isEmpty())
-        {
-            for(int i = 0;i < item.count();i++)
-            {
-                if(item.at(i)->column()==6)
-                    point[item.at(i)->row()]++;
-            }
-        }
-    }
-
-
     QString date1 = ui->startTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
     QString date2 = ui->endTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
 
-
-
-    //qDebug("%s",qPrintable(date1));
-    //qDebug("%s",qPrintable(date2));
-
-    for(int i = 0;i < RC;i++)
+    for(int j = 0;j < 3;j++)
     {
-        if((!(QString::compare(time[i],date1) < 0 ))&&(!(QString::compare(time[i],date2) > 0 )))
+        if(flag[j])
         {
-            point[i]++;
+            QList<QTableWidgetItem*> item = ui->tableWidget->findItems(QString(char('A'+j)),Qt::MatchContains);
+            if(!item.isEmpty())
+            {
+                for(int k =0 ;k < item.count();k++)
+                {
+                    int num = item.at(k)->row();
+                    if(item.at(k)->column()==1)
+                    {
+                        for(int m = 3;m < 7;m++)
+                        {
+                            if(flag[m])
+                            {
+                                if(ui->tableWidget->item(num,6)->text() == QString(char('0'+m-3)))
+                                {
+                                    if((!(QString::compare(line[num],date1) < 0 ))&&(!(QString::compare(line[num],date2) > 0 )))
+                                    {
+                                        ui->tableWidget->setRowHidden(num,false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
-
-
-    for(int i = 0;i < RC;i++)
-    {
-        if(point[i] == symbol)
-            ui->tableWidget->setRowHidden(i,false);
     }
 }
 
@@ -456,5 +317,16 @@ void MainWindow::timeFilter()
 {
 
 
+}
 
+void MainWindow::on_pushButton_clicked()
+{
+    qSort(line.begin(),line.end());
+
+    qDebug("sort complete\n");
+
+    ui->tableWidget->clearContents();
+    ui->tableWidget->setRowCount(0);
+
+    //tableShow();
 }

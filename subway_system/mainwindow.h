@@ -12,6 +12,7 @@
 #include"QTableView"
 #include"QStandardItemModel"
 #include"QSplitter"
+#include <QtAlgorithms>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -46,6 +47,8 @@ private slots:
 
     void on_set_filter_clicked();
 
+
+    void on_pushButton_clicked();
 
 private:
 
