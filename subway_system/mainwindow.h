@@ -52,6 +52,8 @@ private:
 
     QAbstractItemModel *model = nullptr;
 
+    QVector<QString> line;
+
     QVector<QString> time;
     QVector<QString> lineID;
     QVector<int> stationID;

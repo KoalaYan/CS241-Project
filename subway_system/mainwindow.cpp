@@ -40,14 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setHorizontalHeaderLabels(header);
 
 
-    int Flag = 0;
-    if(QString::compare(QString("1 2"),QString("1 0")) > 0)
-        qDebug(">");
-    if(QString::compare(QString("1 1"),QString("1 2")) < 0)
-        qDebug("<");
-    if(QString::compare(QString("1 1"),QString("1 1")) == 0)
-        qDebug("=");
-
 
     setWindowTitle(tr("Metro"));
     resize(1000, 600);
@@ -129,14 +121,14 @@ void MainWindow::loadFile(const QString &fileName)
             }
             time.append(pieces.value(0));
             lineID.append(pieces.value(1));
-            stationID.append(pieces.value(2).toInt());
+            //stationID.append(pieces.value(2).toInt());
             stationID_str.append(pieces.value(2));
-            deviceID.append(pieces.value(3).toInt());
+            //deviceID.append(pieces.value(3).toInt());
             deviceID_str.append(pieces.value(3));
-            status.append(pieces.value(4).toInt());
+            //status.append(pieces.value(4).toInt());
             status_str.append(pieces.value(4));
             userID.append(pieces.value(5));
-            payType.append(pieces.value(6).toInt());
+            //payType.append(pieces.value(6).toInt());
             payType_str.append(pieces.value(6));
         }
     }
@@ -166,7 +158,7 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         fileName = stringlist[i];
 
         i++;
-        if(i > 5)
+        if(i > 100)
             break;
 
         //qDebug("file name is %s\n",qPrintable(fileName));
@@ -178,50 +170,54 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         bool flag = true;
 
         while (!stream.atEnd()) {
-            const QString line = stream.readLine();
-            if (!line.isEmpty()) {
-                const QStringList pieces = line.split(',', QString::SkipEmptyParts);
+            const QString Line = stream.readLine();
+            if (!Line.isEmpty()) {
+                //const QStringList pieces = line.split(',', QString::SkipEmptyParts);
                 if (flag)
                 {
                     flag = false;
                     continue;
                 }
-                time.append(pieces.value(0));
-                lineID.append(pieces.value(1));
-                stationID.append(pieces.value(2).toInt());
-                stationID_str.append(pieces.value(2));
-                deviceID.append(pieces.value(3).toInt());
-                deviceID_str.append(pieces.value(3));
-                status.append(pieces.value(4).toInt());
-                status_str.append(pieces.value(4));
-                userID.append(pieces.value(5));
-                payType.append(pieces.value(6).toInt());
-                payType_str.append(pieces.value(6));
+                line.append(Line);
+
+//                time.append(pieces.value(0));
+//                lineID.append(pieces.value(1));
+//                stationID.append(pieces.value(2).toInt());
+//                stationID_str.append(pieces.value(2));
+//                deviceID.append(pieces.value(3).toInt());
+//                deviceID_str.append(pieces.value(3));
+//                status.append(pieces.value(4).toInt());
+//                status_str.append(pieces.value(4));
+//                userID.append(pieces.value(5));
+//                payType.append(pieces.value(6).toInt());
+//                payType_str.append(pieces.value(6));
             }
         }
 
 
         file.close();
-        tableShow();
+
+        qDebug("file name is %s\n",qPrintable(fileName));
         statusBar()->showMessage(tr("Loaded %1").arg(fileName), 2000);
     }
+    tableShow();
 }
 void MainWindow::tableShow()
 {
     int row = ui->tableWidget->rowCount();
-    QVector<QString>::iterator iter_1,iter_2,iter_6;
-    QVector<QString>::iterator iter_3,iter_4,iter_5,iter_7;
-    iter_1 = time.begin() + row;
-    iter_2 = lineID.begin() + row;
-    iter_3 = stationID_str.begin() + row;
-    iter_4 = deviceID_str.begin() + row;
-    iter_5 = status_str.begin() + row;
-    iter_6 = userID.begin() + row;
-    iter_7 = payType_str.begin() + row;
+//    QVector<QString>::iterator iter_1,iter_2,iter_6;
+//    QVector<QString>::iterator iter_3,iter_4,iter_5,iter_7;
+//    iter_1 = time.begin() + row;
+//    iter_2 = lineID.begin() + row;
+//    iter_3 = stationID_str.begin() + row;
+//    iter_4 = deviceID_str.begin() + row;
+//    iter_5 = status_str.begin() + row;
+//    iter_6 = userID.begin() + row;
+//    iter_7 = payType_str.begin() + row;
 
-
-
-    while(iter_1 != time.end())
+    QVector<QString>::iterator iter;
+    iter = line.begin() + row;
+    while(iter != line.end())
     {
         if(row == 1)
         {
@@ -231,23 +227,47 @@ void MainWindow::tableShow()
 
         ui->tableWidget->insertRow(row); //插入新行
 
-        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(*iter_1));
-        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(*iter_2));
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(*iter_3));
-        ui->tableWidget->setItem(row, 3, new QTableWidgetItem(*iter_4));
-        ui->tableWidget->setItem(row, 4, new QTableWidgetItem(*iter_5));
-        ui->tableWidget->setItem(row, 5, new QTableWidgetItem(*iter_6));
-        ui->tableWidget->setItem(row, 6, new QTableWidgetItem(*iter_7));
+        const QStringList pieces = (*iter).split(',', QString::SkipEmptyParts);
+
+        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(pieces.value(0)));
+        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(pieces.value(1)));
+        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pieces.value(2)));
+        ui->tableWidget->setItem(row, 3, new QTableWidgetItem(pieces.value(3)));
+        ui->tableWidget->setItem(row, 4, new QTableWidgetItem(pieces.value(4)));
+        ui->tableWidget->setItem(row, 5, new QTableWidgetItem(pieces.value(5)));
+        ui->tableWidget->setItem(row, 6, new QTableWidgetItem(pieces.value(6)));
 
         row++;
-        iter_1++;
-        iter_2++;
-        iter_3++;
-        iter_4++;
-        iter_5++;
-        iter_6++;
-        iter_7++;
+        iter++;
     }
+
+//    while(iter_1 != time.end())
+//    {
+//        if(row == 1)
+//        {
+//            ui->tableWidget->resizeRowsToContents();
+//            ui->tableWidget->resizeColumnsToContents();
+//        }
+
+//        ui->tableWidget->insertRow(row); //插入新行
+
+//        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(*iter_1));
+//        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(*iter_2));
+//        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(*iter_3));
+//        ui->tableWidget->setItem(row, 3, new QTableWidgetItem(*iter_4));
+//        ui->tableWidget->setItem(row, 4, new QTableWidgetItem(*iter_5));
+//        ui->tableWidget->setItem(row, 5, new QTableWidgetItem(*iter_6));
+//        ui->tableWidget->setItem(row, 6, new QTableWidgetItem(*iter_7));
+
+//        row++;
+//        iter_1++;
+//        iter_2++;
+//        iter_3++;
+//        iter_4++;
+//        iter_5++;
+//        iter_6++;
+//        iter_7++;
+//    }
 
 
 }
