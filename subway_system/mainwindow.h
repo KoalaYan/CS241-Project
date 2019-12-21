@@ -13,6 +13,12 @@
 #include"QStandardItemModel"
 #include"QSplitter"
 #include <QtAlgorithms>
+#include"QChart"
+#include"QLineSeries"
+#include<QtCharts>
+
+using namespace QtCharts;
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -50,7 +56,16 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_selectAll_stateChanged(int arg1);
+
 private:
+
+    QChart *chart = new QChart();
+    QSplineSeries *series0 = new QSplineSeries();
+    QSplineSeries *series1 = new QSplineSeries();
+    QDateTimeAxis *dateAxisX = new QDateTimeAxis;
+    QValueAxis *axisY = new QValueAxis;
+    int *tim_0,*tim_1;
 
 
     QAbstractItemModel *model = nullptr;
@@ -71,10 +86,13 @@ private:
     QTableWidget *table;
 
 
-    void timeFilter();
     void loadFile(const QString &path);
     void loadFiles(const QStringList &stringlist);
     void tableShow(void);
+    void paint();
+
+
+
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
