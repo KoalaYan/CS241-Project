@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent)
     for(int i = 0;i < 81;i++)
     {
         ui->station->addItem(QString::number(i,10));
+        ui->departure->addItem(QString::number(i,10));
+        ui->arrival->addItem(QString::number(i,10));
     }
     //time_step_set
     for(int i = 0;i < 24;i++)
@@ -71,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     {
         ui->second->addItem(QString::number(i,10));
     }
+
 
 
     setWindowTitle(tr("Metro"));
@@ -468,7 +471,7 @@ void MainWindow::paint()
     dateAxisX->setRange(ui->beginning->dateTime(), flag);//设置坐标轴范围
     dateAxisX->setTitleText("time");//标题
     dateAxisX->setFormat("MM/dd hh:mm:ss");
-    dateAxisX->setTickCount(k+1); //主分隔个数
+    dateAxisX->setTickCount(6); //主分隔个数
     //dateAxisX->setMinorTickCount(4); //每个单位之间绘制了多少虚网线
 
     axisY->setRange(0, 1.5*max);
@@ -506,4 +509,120 @@ void MainWindow::on_selectAll_stateChanged(int arg1)
         ui->checkBox_6->setChecked(false);
         ui->checkBox_7->setChecked(false);
     }
+}
+
+void MainWindow::init()
+{
+    for(int i = 0;i < 81;i++)
+        length[i] = 0;
+
+    depart = ui->departure->currentText().toInt();
+    arrive = ui->arrival->currentText().toInt();
+}
+
+
+void MainWindow::on_loadMaps_clicked()
+{
+    const QString fileName =
+        QFileDialog::getOpenFileName(this, tr("Choose a data file"), "", "*.csv");
+    if (!fileName.isEmpty())
+        loadFile(fileName);
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+        return;
+
+    QTextStream stream(&file);
+
+
+    int station = 0;
+    bool flag = true;
+    QString Line;
+    while (!stream.atEnd()) {
+        Line = stream.readLine();
+        if (!Line.isEmpty()) {
+            if (flag)
+            {
+                flag = false;
+                continue;
+            }
+
+            const QStringList pieces = Line.split(',', QString::SkipEmptyParts);
+            for(int i = 1;i < pieces.count();i++)
+            {
+                if(pieces.value(i) == QString('1'))
+                {
+                    //qDebug("%d->%d",station,i-1);
+                    vc[station].append(i-1);
+                }
+            }
+            station++;
+        }
+    }
+    file.close();
+    statusBar()->showMessage(tr("Loaded %1").arg(fileName), 2000);
+}
+void MainWindow::bfs()
+{
+    QList<int> list;
+    list.append(depart);
+    length[depart] = 0;
+
+    while(list.count())
+    {
+        int now = list[0];
+        list.pop_front();
+        for(int i = 0;i < vc[now].count();i++)
+        {
+            if(length[vc[now][i]] == 0 && vc[now][i] != depart)
+            {
+                list.append(vc[now][i]);
+                length[vc[now][i]] = length[now] + 1;
+            }
+        }
+        if(length[arrive])
+            break;
+    }
+}
+
+void MainWindow::print()
+{
+    int steps = length[arrive];
+    //qDebug("step is %d",steps);
+    int *path = new int[steps + 1];
+    path[steps] = arrive;
+    int now = arrive;
+    for(int i = steps - 1;i >= 0;i--)
+    {
+        for(int j = 0;j < vc[now].count();j++)
+        {
+            if(length[vc[now][j]] == length[now]-1)
+            {
+                now = vc[now][j];
+                path[i] = now;
+                break;
+            }
+        }
+    }
+
+    QString Path = "The path is ";
+    for(int i = 0;i < steps;i++)
+    {
+        Path.append(QString::number(i,10));
+        Path.append("->");
+        //qDebug("%d->",path[i]);
+    }
+    Path.append(QString::number(arrive,10));
+    Path.append("\n");
+    //qDebug("%d\n",path[steps]);
+
+    ui->textBrowser->textCursor().insertText(Path);
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    init();
+    bfs();
+    print();
+
 }

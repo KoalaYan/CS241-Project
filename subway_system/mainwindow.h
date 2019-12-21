@@ -16,12 +16,14 @@
 #include"QChart"
 #include"QLineSeries"
 #include<QtCharts>
+#include"QList"
 
 using namespace QtCharts;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
 
 class MainWindow : public QMainWindow
 {
@@ -58,7 +60,16 @@ private slots:
 
     void on_selectAll_stateChanged(int arg1);
 
+    void on_loadMaps_clicked();
+
+    void on_pushButton_3_clicked();
+
 private:
+
+    QVector<int> vc[81];
+    int cnt = 0;
+    int length[81];
+    int depart,arrive;
 
     QChart *chart = new QChart();
     QSplineSeries *series0 = new QSplineSeries();
@@ -90,7 +101,11 @@ private:
     void loadFiles(const QStringList &stringlist);
     void tableShow(void);
     void paint();
+    void init();
 
+
+    void bfs();
+    void print();
 
 
     Ui::MainWindow *ui;
