@@ -39,34 +39,36 @@ private slots:
     void chooseFolder();
 
 
-    void on_checkBox_stateChanged(int arg1);
+    void on_checkBox_stateChanged();
 
-    void on_checkBox_3_stateChanged(int arg1);
+    void on_checkBox_3_stateChanged();
 
-    void on_checkBox_2_stateChanged(int arg1);
+    void on_checkBox_2_stateChanged();
 
-    void on_checkBox_4_stateChanged(int arg1);
+    void on_checkBox_4_stateChanged();
 
-    void on_checkBox_5_stateChanged(int arg1);
+    void on_checkBox_5_stateChanged();
 
-    void on_checkBox_6_stateChanged(int arg1);
+    void on_checkBox_6_stateChanged();
 
-    void on_checkBox_7_stateChanged(int arg1);
-
-
-    void on_set_filter_clicked();
+    void on_checkBox_7_stateChanged();
 
 
     void on_pushButton_clicked();
 
-    void on_selectAll_stateChanged(int arg1);
+    void on_selectAll_stateChanged();
 
     void on_loadMaps_clicked();
 
     void on_pushButton_3_clicked();
 
+    void on_pushButton_4_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
 
+    bool isFilter = false;
     bool isChanged = false;
     bool sortFlag = false;
 
@@ -110,6 +112,7 @@ private:
 
     void bfs();
     void print();
+
 
 
     Ui::MainWindow *ui;

@@ -16,12 +16,12 @@ MainWindow::MainWindow(QWidget *parent)
     //fileOperation
     QMenu *fileMenu = new QMenu(tr("&File"), this);
     QAction *openAction = fileMenu->addAction(tr("&Open..."));
-    //openAction->setShortcuts(QKeySequence::Open);
+    openAction->setShortcuts(QKeySequence::Open);
 
     QAction *chooseAction = fileMenu->addAction(tr("&Choose a folder..."));
 
     QAction *quitAction = fileMenu->addAction(tr("&Quit"));
-    //quitAction->setShortcuts(QKeySequence::Quit);
+    quitAction->setShortcuts(QKeySequence::Quit);
 
 
 
@@ -43,12 +43,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setHorizontalHeaderLabels(header);
 
     //qtchart
-    chart->setTitle("Subway Station Flow Chart");   //图标的名字
+    chart->setTitle("Subway Station Flow Chart");
     ui->widget->setChart(chart);
 
-    //创建曲线序列
-
-    series0->setName("inflow");   //自动添加折线名字
+    series0->setName("inflow");
     series1->setName("outflow");
     chart->addSeries(series0);
     chart->addSeries(series1);
@@ -99,7 +97,6 @@ void MainWindow::openFile()
 
 void MainWindow::chooseFolder()
 {
-    //qDebug("choose folder\n");
     const QString srcDirPath = QFileDialog::getExistingDirectory(
                 this, "choose src Directory",
                  "/");
@@ -112,15 +109,14 @@ void MainWindow::chooseFolder()
 
 
     QStringList string_list;
-    for(int i=0; i < dir.count(); i++)
+    for(int i=0; i < int(dir.count()); i++)
     {
-        QString file_name = srcDirPath + "/";  //文件名称
+        QString file_name = srcDirPath + "/";
         file_name.append(dir[i]);
         string_list.append(file_name);
     }
 
     loadFiles(string_list);
-    //qDebug("choose folder complete...\n");
 }
 void MainWindow::loadFile(const QString &fileName)
 {
@@ -132,7 +128,6 @@ void MainWindow::loadFile(const QString &fileName)
     ui->tableWidget->setColumnHidden(5, !ui->checkBox_6->isChecked());
     ui->tableWidget->setColumnHidden(6, !ui->checkBox_7->isChecked());
 
-    //qDebug("file name is %s\n",qPrintable(fileName));
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
         return;
@@ -178,8 +173,6 @@ void MainWindow::loadFiles(const QStringList &stringlist)
     ui->tableWidget->setColumnHidden(5, !ui->checkBox_6->isChecked());
     ui->tableWidget->setColumnHidden(6, !ui->checkBox_7->isChecked());
 
-    //qDebug("load files with %d\n",stringlist.count());
-
     QString fileName;
 
     int i = 0;
@@ -189,7 +182,6 @@ void MainWindow::loadFiles(const QStringList &stringlist)
 
         i++;
 
-        //qDebug("file name is %s\n",qPrintable(fileName));
         QFile file(fileName);
         if (!file.open(QFile::ReadOnly | QFile::Text))
             continue;
@@ -225,145 +217,160 @@ void MainWindow::loadFiles(const QStringList &stringlist)
     }
 
 }
+
+
 void MainWindow::tableShow()
 {
     int row = ui->tableWidget->rowCount();
-    //qDebug("%d\n",row);
 
     QVector<QString>::iterator iter;
     iter = line.begin() + row;
-    while(iter != line.end())
+
+
+    if(isFilter)
     {
-        if(row == 1)
+        bool flag[7];
+        flag[0] = ui->lineA->isChecked();
+        flag[1] = ui->lineB->isChecked();
+        flag[2] = ui->lineC->isChecked();
+        flag[3] = ui->type_1->isChecked();
+        flag[4] = ui->type_2->isChecked();
+        flag[5] = ui->type_3->isChecked();
+        flag[6] = ui->type_4->isChecked();
+
+        QString date1 = ui->startTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+        QString date2 = ui->endTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+        while(iter != line.end())
         {
-            ui->tableWidget->resizeRowsToContents();
-            ui->tableWidget->resizeColumnsToContents();
+            if(row == 1)
+            {
+                ui->tableWidget->resizeRowsToContents();
+                ui->tableWidget->resizeColumnsToContents();
+            }
+
+
+
+            const QStringList pieces = (*iter).split(',', QString::SkipEmptyParts);
+
+            //filter
+
+            bool sym = false;
+
+            for(int j = 0;j < 3;j++)
+            {
+                if(flag[j])
+                {
+                    if(pieces.value(1) == QString(char('A'+j)))
+                        sym = true;
+                }
+            }
+            if(!sym)
+            {iter++;continue;}
+            sym = false;
+
+            for(int m = 3;m < 7;m++)
+            {
+                if(flag[m])
+                {
+                    if(pieces.value(6) == QString(char('0'+m-3)))
+                        sym = true;
+                }
+            }
+            if(!sym)
+            {iter++;continue;}
+
+            if((!(QString::compare(*iter,date1) < 0 ))&&(!(QString::compare(*iter,date2) > 0 )))
+            {
+                ui->tableWidget->insertRow(row);
+
+                ui->tableWidget->setItem(row, 0, new QTableWidgetItem(pieces.value(0)));
+                ui->tableWidget->setItem(row, 1, new QTableWidgetItem(pieces.value(1)));
+                ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pieces.value(2)));
+                ui->tableWidget->setItem(row, 3, new QTableWidgetItem(pieces.value(3)));
+                ui->tableWidget->setItem(row, 4, new QTableWidgetItem(pieces.value(4)));
+                ui->tableWidget->setItem(row, 5, new QTableWidgetItem(pieces.value(5)));
+                ui->tableWidget->setItem(row, 6, new QTableWidgetItem(pieces.value(6)));
+
+                row++;
+            }
+            iter++;
         }
-
-        ui->tableWidget->insertRow(row); //插入新行
-
-        const QStringList pieces = (*iter).split(',', QString::SkipEmptyParts);
-
-        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(pieces.value(0)));
-        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(pieces.value(1)));
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pieces.value(2)));
-        ui->tableWidget->setItem(row, 3, new QTableWidgetItem(pieces.value(3)));
-        ui->tableWidget->setItem(row, 4, new QTableWidgetItem(pieces.value(4)));
-        ui->tableWidget->setItem(row, 5, new QTableWidgetItem(pieces.value(5)));
-        ui->tableWidget->setItem(row, 6, new QTableWidgetItem(pieces.value(6)));
-
-        row++;
-        iter++;
     }
+    else
+    {
+        while(iter != line.end())
+        {
+            if(row == 1)
+            {
+                ui->tableWidget->resizeRowsToContents();
+                ui->tableWidget->resizeColumnsToContents();
+            }
+
+
+
+            const QStringList pieces = (*iter).split(',', QString::SkipEmptyParts);
+
+            ui->tableWidget->insertRow(row);
+
+            ui->tableWidget->setItem(row, 0, new QTableWidgetItem(pieces.value(0)));
+            ui->tableWidget->setItem(row, 1, new QTableWidgetItem(pieces.value(1)));
+            ui->tableWidget->setItem(row, 2, new QTableWidgetItem(pieces.value(2)));
+            ui->tableWidget->setItem(row, 3, new QTableWidgetItem(pieces.value(3)));
+            ui->tableWidget->setItem(row, 4, new QTableWidgetItem(pieces.value(4)));
+            ui->tableWidget->setItem(row, 5, new QTableWidgetItem(pieces.value(5)));
+            ui->tableWidget->setItem(row, 6, new QTableWidgetItem(pieces.value(6)));
+
+            row++;
+
+            iter++;
+        }
+    }
+
+
 }
 
-void MainWindow::on_checkBox_stateChanged(int arg1)
+void MainWindow::on_checkBox_stateChanged()
 {
     ui->tableWidget->setColumnHidden(0, !ui->checkBox->isChecked());
 }
 
-void MainWindow::on_checkBox_2_stateChanged(int arg1)
+void MainWindow::on_checkBox_2_stateChanged()
 {
     ui->tableWidget->setColumnHidden(1, !ui->checkBox_2->isChecked());
 }
 
-void MainWindow::on_checkBox_3_stateChanged(int arg1)
+void MainWindow::on_checkBox_3_stateChanged()
 {
     ui->tableWidget->setColumnHidden(2, !ui->checkBox_3->isChecked());
 }
 
 
-void MainWindow::on_checkBox_4_stateChanged(int arg1)
+void MainWindow::on_checkBox_4_stateChanged()
 {
     ui->tableWidget->setColumnHidden(3, !ui->checkBox_4->isChecked());
 }
 
-void MainWindow::on_checkBox_5_stateChanged(int arg1)
+void MainWindow::on_checkBox_5_stateChanged()
 {
     ui->tableWidget->setColumnHidden(4, !ui->checkBox_5->isChecked());
 }
 
-void MainWindow::on_checkBox_6_stateChanged(int arg1)
+void MainWindow::on_checkBox_6_stateChanged()
 {
     ui->tableWidget->setColumnHidden(5, !ui->checkBox_6->isChecked());
 }
 
-void MainWindow::on_checkBox_7_stateChanged(int arg1)
+void MainWindow::on_checkBox_7_stateChanged()
 {
     ui->tableWidget->setColumnHidden(6, !ui->checkBox_7->isChecked());
-}
-
-void MainWindow::on_set_filter_clicked()
-{
-    if(isChanged)
-    {
-        QMessageBox::information(NULL, "Warning", "The table can't be filtered for its Change.");
-
-        return;
-    }
-
-    //qDebug("set_filter_clicked\n");
-
-    int RC = ui->tableWidget->rowCount();
-
-
-    //qDebug("table row is %d",RC);
-
-    for(int i = 0;i < RC;i++)
-    {
-        ui->tableWidget->setRowHidden(i,true);
-    }
-    //qDebug("All rows have been hidden\n");
-
-    bool flag[7];
-    flag[0] = ui->lineA->isChecked();
-    flag[1] = ui->lineB->isChecked();
-    flag[2] = ui->lineC->isChecked();
-    flag[3] = ui->type_1->isChecked();
-    flag[4] = ui->type_2->isChecked();
-    flag[5] = ui->type_3->isChecked();
-    flag[6] = ui->type_4->isChecked();
-
-    QString date1 = ui->startTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
-    QString date2 = ui->endTime->dateTime().toString("yyyy-MM-dd hh:mm:ss");
-
-    for(int j = 0;j < 3;j++)
-    {
-        if(flag[j])
-        {
-            QList<QTableWidgetItem*> item = ui->tableWidget->findItems(QString(char('A'+j)),Qt::MatchContains);
-            if(!item.isEmpty())
-            {
-                for(int k =0 ;k < item.count();k++)
-                {
-                    int num = item.at(k)->row();
-                    if(item.at(k)->column()==1)
-                    {
-                        for(int m = 3;m < 7;m++)
-                        {
-                            if(flag[m])
-                            {
-                                if(ui->tableWidget->item(num,6)->text() == QString(char('0'+m-3)))
-                                {
-                                    if((!(QString::compare(line[num],date1) < 0 ))&&(!(QString::compare(line[num],date2) > 0 )))
-                                    {
-                                        ui->tableWidget->setRowHidden(num,false);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 void MainWindow::on_pushButton_clicked()
 {
     if(!sortFlag)
     {
-        qSort(line.begin(),line.end());
+        std::sort(line.begin(),line.end());
         //sortFlag = true;
         qDebug("sort complete\n");
         isChanged = true;
@@ -413,7 +420,7 @@ void MainWindow::paint()
     QString station = ui->station->currentText();
 
     //qDebug("test1\n");
-    int RC = line.count();
+    //int RC = line.count();
     int row = 0;
     while(iter != line.end() &&
           QString::compare(time_2.toString("yyyy-MM-dd hh:mm:ss"),flag.toString("yyyy-MM-dd hh:mm:ss")) < 0)
@@ -437,7 +444,7 @@ void MainWindow::paint()
             }
             else
             {
-                bool sym = false;
+                //bool sym = false;
                 while((QString::compare(*iter,time_2.toString("yyyy-MM-dd hh:mm:ss")) > 0)
                       && !(QString::compare(time_1.toString("yyyy-MM-dd hh:mm:ss"),flag.toString("yyyy-MM-dd hh:mm:ss")) > 0))
                 {
@@ -508,7 +515,7 @@ void MainWindow::paint()
 
 }
 
-void MainWindow::on_selectAll_stateChanged(int arg1)
+void MainWindow::on_selectAll_stateChanged()
 {
     if(ui->selectAll->isChecked())
     {
@@ -650,4 +657,16 @@ void MainWindow::on_pushButton_3_clicked()
     init();
     bfs();
     print();
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    //show all
+    isFilter = false;
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    //filter show
+    isFilter = true;
 }
