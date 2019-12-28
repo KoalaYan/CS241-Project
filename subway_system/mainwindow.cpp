@@ -18,10 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *openAction = fileMenu->addAction(tr("&Open..."));
     //openAction->setShortcuts(QKeySequence::Open);
 
+    QAction *chooseAction = fileMenu->addAction(tr("&Choose a folder..."));
+
     QAction *quitAction = fileMenu->addAction(tr("&Quit"));
     //quitAction->setShortcuts(QKeySequence::Quit);
 
-    QAction *chooseAction = fileMenu->addAction(tr("&Choose a folder..."));
 
 
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
@@ -110,10 +111,6 @@ void MainWindow::chooseFolder()
     dir.setNameFilters(nameFilters);
 
 
-    //qDebug("%s",qPrintable(srcDirPath));
-
-    //qDebug("%d\n",dir.count());
-
     QStringList string_list;
     for(int i=0; i < dir.count(); i++)
     {
@@ -164,6 +161,15 @@ void MainWindow::loadFile(const QString &fileName)
 
 void MainWindow::loadFiles(const QStringList &stringlist)
 {
+    QProgressDialog process(this);
+    process.setWindowTitle(QStringLiteral("Please wait..."));
+    process.setLabelText(tr("Loading..."));
+    process.setRange(0,stringlist.count()-1);
+    process.setModal(true);
+    process.setCancelButtonText(tr("cancel"));
+    process.setValue(0);
+
+
     ui->tableWidget->setColumnHidden(0, !ui->checkBox->isChecked());
     ui->tableWidget->setColumnHidden(1, !ui->checkBox_2->isChecked());
     ui->tableWidget->setColumnHidden(2, !ui->checkBox_3->isChecked());
@@ -182,8 +188,6 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         fileName = stringlist[i];
 
         i++;
-        if(i > 30)
-            break;
 
         //qDebug("file name is %s\n",qPrintable(fileName));
         QFile file(fileName);
@@ -210,6 +214,10 @@ void MainWindow::loadFiles(const QStringList &stringlist)
         file.close();
 
         tableShow();
+        process.setValue(i);
+        if(process.wasCanceled())
+            break;
+
         qApp->processEvents();
 
         qDebug("file name is %s\n",qPrintable(fileName));
@@ -247,9 +255,6 @@ void MainWindow::tableShow()
         row++;
         iter++;
     }
-
-
-
 }
 
 void MainWindow::on_checkBox_stateChanged(int arg1)
@@ -290,6 +295,12 @@ void MainWindow::on_checkBox_7_stateChanged(int arg1)
 
 void MainWindow::on_set_filter_clicked()
 {
+    if(isChanged)
+    {
+        QMessageBox::information(NULL, "Warning", "The table can't be filtered for its Change.");
+
+        return;
+    }
 
     //qDebug("set_filter_clicked\n");
 
@@ -350,16 +361,19 @@ void MainWindow::on_set_filter_clicked()
 
 void MainWindow::on_pushButton_clicked()
 {
-    qSort(line.begin(),line.end());
+    if(!sortFlag)
+    {
+        qSort(line.begin(),line.end());
+        //sortFlag = true;
+        qDebug("sort complete\n");
+        isChanged = true;
+    }
 
-    qDebug("sort complete\n");
 
-    //ui->tableWidget->clearContents();
-    //ui->tableWidget->setRowCount(0);
+    series0->clear();
+    series1->clear();
 
-    //tableShow();
     paint();
-
 }
 
 void MainWindow::paint()
@@ -413,11 +427,11 @@ void MainWindow::paint()
             {
                 if(pieces.value(4) == QString("0"))
                 {
-                    tim_0[row]++;
+                    tim_1[row]++;
                 }
                 else
                 {
-                    tim_1[row]++;
+                    tim_0[row]++;
                 }
 
             }
@@ -470,21 +484,28 @@ void MainWindow::paint()
     qDebug("test3\n");
     dateAxisX->setRange(ui->beginning->dateTime(), flag);//设置坐标轴范围
     dateAxisX->setTitleText("time");//标题
+    dateAxisX->setLabelsAngle(45);
     dateAxisX->setFormat("MM/dd hh:mm:ss");
     dateAxisX->setTickCount(6); //主分隔个数
     //dateAxisX->setMinorTickCount(4); //每个单位之间绘制了多少虚网线
 
     axisY->setRange(0, 1.5*max);
-    axisY->setTitleText("popularity");
+    axisY->setTitleText("Flow");
     axisY->setLabelFormat("%d"); //标签格式
     axisY->setTickCount(10);
     //axisY->setMinorTickCount(4);
 
-    chart->setAxisX(dateAxisX, series0);
-    chart->setAxisY(axisY, series0);
+    if(!sortFlag)
+    {
+        chart->setAxisX(dateAxisX, series0);
+        chart->setAxisY(axisY, series0);
 
-    chart->setAxisX(dateAxisX, series1);
-    chart->setAxisY(axisY, series1);
+        chart->setAxisX(dateAxisX, series1);
+        chart->setAxisY(axisY, series1);
+        sortFlag = true;
+    }
+
+
 }
 
 void MainWindow::on_selectAll_stateChanged(int arg1)
@@ -525,8 +546,8 @@ void MainWindow::on_loadMaps_clicked()
 {
     const QString fileName =
         QFileDialog::getOpenFileName(this, tr("Choose a data file"), "", "*.csv");
-    if (!fileName.isEmpty())
-        loadFile(fileName);
+    if (fileName.isEmpty())
+        return;
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text))
@@ -566,6 +587,8 @@ void MainWindow::bfs()
 {
     QList<int> list;
     list.append(depart);
+    qDebug("departure is %d",depart);
+
     length[depart] = 0;
 
     while(list.count())
@@ -587,12 +610,14 @@ void MainWindow::bfs()
 
 void MainWindow::print()
 {
+    ui->textBrowser->clearHistory();
     int steps = length[arrive];
     //qDebug("step is %d",steps);
     int *path = new int[steps + 1];
     path[steps] = arrive;
+    path[0] = depart;
     int now = arrive;
-    for(int i = steps - 1;i >= 0;i--)
+    for(int i = steps - 1;i > 0;i--)
     {
         for(int j = 0;j < vc[now].count();j++)
         {
@@ -605,10 +630,11 @@ void MainWindow::print()
         }
     }
 
-    QString Path = "The path is ";
+
+    QString Path = "The path from " + QString::number(depart) + " to " + QString::number(arrive) + " is ";
     for(int i = 0;i < steps;i++)
     {
-        Path.append(QString::number(i,10));
+        Path.append(QString::number(path[i],10));
         Path.append("->");
         //qDebug("%d->",path[i]);
     }
@@ -624,5 +650,4 @@ void MainWindow::on_pushButton_3_clicked()
     init();
     bfs();
     print();
-
 }

@@ -34,6 +34,7 @@ public:
     ~MainWindow();
 
 private slots:
+
     void openFile();
     void chooseFolder();
 
@@ -65,6 +66,9 @@ private slots:
     void on_pushButton_3_clicked();
 
 private:
+
+    bool isChanged = false;
+    bool sortFlag = false;
 
     QVector<int> vc[81];
     int cnt = 0;
